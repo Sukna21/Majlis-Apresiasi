@@ -50,3 +50,10 @@ https://sukna21.github.io/Majlis-Apresiasi/qr.html
 - Bahagian kini menggunakan dropdown sahaja.
 - Senarai bahagian: Pentadbiran dan Kewangan, Perancangan Korporat, Pengawalan Perancangan, Rancangan Pembangunan.
 - Suggestion nama menggunakan masterlist 99 pegawai dalam Supabase dan akan mengisi Bahagian secara automatik apabila nama dipilih.
+
+## Hotfix v4.1
+
+- Memperbaiki masalah "Senarai nama tidak dapat dimuatkan".
+- `config.js` kini menggunakan legacy anon JWT yang serasi dengan direct Supabase REST/RPC.
+- Suggestion nama kini baca terus `masterlist_pegawai_jpbd_selangor.csv` dari repo sebagai sumber utama.
+- Supabase digunakan sebagai fallback dan untuk menyimpan RSVP.

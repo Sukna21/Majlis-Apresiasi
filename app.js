@@ -10,8 +10,9 @@
   const successPanel = document.getElementById("successPanel");
   const closedNotice = document.getElementById("closedNotice");
   const toast = document.getElementById("toast");
+
   let timer = null;
-  let lastResults = [];
+  let localInvitees = [];
 
   const headers = {
     "apikey": cfg.supabaseKey,
@@ -46,6 +47,28 @@
   }
   checkClosed();
 
+  // Load the 99-name masterlist directly from this GitHub Pages repo.
+  // This makes name suggestions work even if the Supabase lookup is temporarily unavailable.
+  async function loadLocalMasterlist(){
+    try{
+      const res=await fetch(`masterlist_pegawai_jpbd_selangor.csv?v=${Date.now()}`,{cache:"no-store"});
+      if(!res.ok) throw new Error("masterlist fetch failed");
+      const text=(await res.text()).replace(/^\uFEFF/,"");
+      const lines=text.split(/\r?\n/).filter(Boolean);
+      localInvitees=lines.slice(1).map((line,idx)=>{
+        const parts=line.split(",");
+        return {
+          id:null,
+          name:(parts[0]||"").trim(),
+          unit:(parts.slice(1).join(",")||"").trim()
+        };
+      }).filter(r=>r.name);
+    }catch(e){
+      localInvitees=[];
+    }
+  }
+  loadLocalMasterlist();
+
   document.querySelectorAll(".status-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
       document.querySelectorAll(".status-btn").forEach(b=>b.classList.remove("selected"));
@@ -54,27 +77,27 @@
     });
   });
 
-  async function searchInvitees(q){
+  async function searchInviteesSupabase(q){
     const res=await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/search_sukna21_invitees`,{
       method:"POST",
       headers,
       body:JSON.stringify({p_q:q})
     });
-    if(!res.ok){
-      throw new Error("Senarai nama tidak dapat dimuatkan.");
-    }
+    if(!res.ok) throw new Error("Supabase lookup failed");
     return await res.json();
   }
 
-  function renderSuggestions(rows){
+  function searchInviteesLocal(q){
+    const needle=q.toLowerCase();
     const selectedBahagian=unitEl.value;
-    const filtered=selectedBahagian
-      ? rows.filter(r=>r.unit===selectedBahagian)
-      : rows;
+    return localInvitees
+      .filter(r=>r.name.toLowerCase().includes(needle))
+      .filter(r=>!selectedBahagian || r.unit===selectedBahagian)
+      .slice(0,12);
+  }
 
-    lastResults=filtered;
-
-    if(!filtered.length){
+  function renderSuggestions(rows){
+    if(!rows?.length){
       suggestions.innerHTML=`
         <div class="suggestion no-result">
           <strong>Tiada nama dijumpai</strong>
@@ -84,9 +107,9 @@
       return;
     }
 
-    suggestions.innerHTML=filtered.map(r=>`
+    suggestions.innerHTML=rows.map(r=>`
       <div class="suggestion"
-           data-id="${r.id}"
+           data-id="${r.id||""}"
            data-name="${esc(r.name)}"
            data-unit="${esc(r.unit||"")}">
         <strong>${esc(r.name)}</strong>
@@ -96,12 +119,21 @@
     suggestions.classList.remove("hidden");
 
     suggestions.querySelectorAll(".suggestion:not(.no-result)").forEach(item=>{
-      item.addEventListener("click",()=>{
-        inviteeIdEl.value=item.dataset.id;
+      item.addEventListener("click",async()=>{
+        inviteeIdEl.value=item.dataset.id||"";
         nameEl.value=item.dataset.name;
         unitEl.value=item.dataset.unit;
         suggestions.classList.add("hidden");
         nameEl.classList.add("name-confirmed");
+
+        // If local CSV result has no DB id, resolve exact name in Supabase in the background.
+        if(!inviteeIdEl.value){
+          try{
+            const rows=await searchInviteesSupabase(item.dataset.name);
+            const exact=rows.find(r=>r.name===item.dataset.name && r.unit===item.dataset.unit);
+            if(exact) inviteeIdEl.value=exact.id;
+          }catch(e){}
+        }
       });
     });
   }
@@ -117,14 +149,25 @@
       return;
     }
 
+    // Prefer local bundled masterlist.
+    let rows=searchInviteesLocal(q);
+
+    if(rows.length){
+      renderSuggestions(rows);
+      return;
+    }
+
+    // Fallback to Supabase if local list is not loaded or no local match.
     try{
-      const rows=await searchInvitees(q);
+      rows=await searchInviteesSupabase(q);
+      const selectedBahagian=unitEl.value;
+      if(selectedBahagian) rows=rows.filter(r=>r.unit===selectedBahagian);
       renderSuggestions(rows);
     }catch(err){
       suggestions.innerHTML=`
         <div class="suggestion no-result">
           <strong>Senarai nama tidak dapat dimuatkan</strong>
-          <small>Cuba refresh halaman.</small>
+          <small>Refresh halaman dan cuba semula.</small>
         </div>`;
       suggestions.classList.remove("hidden");
     }
@@ -132,7 +175,7 @@
 
   nameEl.addEventListener("input",()=>{
     clearTimeout(timer);
-    timer=setTimeout(performSearch,180);
+    timer=setTimeout(performSearch,150);
   });
 
   nameEl.addEventListener("focus",()=>{
@@ -149,7 +192,7 @@
 
   form.addEventListener("submit",async e=>{
     e.preventDefault();
-    if(checkClosed())return;
+    if(checkClosed()) return;
 
     const name=nameEl.value.trim();
     const unit=unitEl.value;
@@ -161,6 +204,15 @@
 
     setLoading(true);
     try{
+      // Resolve invitee id just before submit if user typed/picked a local CSV result.
+      if(!inviteeIdEl.value){
+        try{
+          const rows=await searchInviteesSupabase(name);
+          const exact=rows.find(r=>r.name.toLowerCase()===name.toLowerCase() && r.unit===unit);
+          if(exact) inviteeIdEl.value=exact.id;
+        }catch(e){}
+      }
+
       const payload={
         p_invitee_id:inviteeIdEl.value||null,
         p_name:name,
@@ -175,8 +227,8 @@
         headers,
         body:JSON.stringify(payload)
       });
-
       const data=await res.json();
+
       if(!res.ok) throw new Error(data?.message||data?.error||"Gagal merekodkan RSVP.");
 
       form.classList.add("hidden");
