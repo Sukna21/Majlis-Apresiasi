@@ -1,51 +1,68 @@
 /**
- * Google Apps Script untuk Portal RSVP Majlis Apresiasi SUKNA-21.
- * Pasang sebagai BOUND SCRIPT pada Google Sheet yang disediakan.
+ * Google Apps Script — RSVP Majlis Apresiasi SUKNA-21
+ * Versi 5.1: JSONP untuk elak masalah CORS antara GitHub Pages dan Apps Script.
  *
- * Deploy:
- * 1. Extensions > Apps Script
- * 2. Paste code ini
- * 3. Deploy > New deployment > Web app
- * 4. Execute as: Me
- * 5. Who has access: Anyone
- * 6. Copy Web app URL ke config.js
+ * PENTING:
+ * Selepas paste code ini:
+ * Deploy > Manage deployments > Edit > New version > Deploy
+ * Execute as: Me
+ * Who has access: Anyone
  */
 
 const RSVP_SHEET = "RSVP";
 const MASTER_SHEET = "Masterlist";
 
-function jsonResponse(obj) {
+function outputData(obj, callback) {
+  const json = JSON.stringify(obj);
+
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$\.]*$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + json + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
   return ContentService
-    .createTextOutput(JSON.stringify(obj))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet(e) {
   try {
-    const action = (e && e.parameter && e.parameter.action) || "dashboard";
+    const p = (e && e.parameter) || {};
+    const action = p.action || "dashboard";
+    let result;
 
     if (action === "dashboard") {
-      return jsonResponse(getDashboardData());
+      result = getDashboardData();
+    } else if (action === "submit") {
+      result = saveRSVP({
+        name: p.name,
+        bahagian: p.bahagian,
+        status: p.status
+      });
+    } else {
+      result = { ok: false, error: "Unknown action" };
     }
 
-    return jsonResponse({ ok: false, error: "Unknown action" });
+    return outputData(result, p.callback);
   } catch (err) {
-    return jsonResponse({ ok: false, error: String(err && err.message ? err.message : err) });
+    return outputData(
+      { ok: false, error: String(err && err.message ? err.message : err) },
+      e && e.parameter ? e.parameter.callback : ""
+    );
   }
 }
 
 function doPost(e) {
   try {
     const data = parseBody(e);
-    const action = data.action || "submit";
-
-    if (action === "submit") {
-      return jsonResponse(saveRSVP(data));
-    }
-
-    return jsonResponse({ ok: false, error: "Unknown action" });
+    const result = saveRSVP(data);
+    return outputData(result, "");
   } catch (err) {
-    return jsonResponse({ ok: false, error: String(err && err.message ? err.message : err) });
+    return outputData(
+      { ok: false, error: String(err && err.message ? err.message : err) },
+      ""
+    );
   }
 }
 
@@ -58,8 +75,10 @@ function parseBody(e) {
   } catch (_) {
     const out = {};
     raw.split("&").forEach(pair => {
-      const [k, v = ""] = pair.split("=");
-      out[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, " "));
+      const parts = pair.split("=");
+      const k = decodeURIComponent(parts[0] || "");
+      const v = decodeURIComponent((parts.slice(1).join("=") || "").replace(/\+/g, " "));
+      out[k] = v;
     });
     return out;
   }
@@ -76,31 +95,56 @@ function saveRSVP(data) {
 
   if (!name) throw new Error("Nama diperlukan.");
   if (!bahagian) throw new Error("Bahagian diperlukan.");
-  if (!["Hadir", "Tidak Hadir"].includes(status)) throw new Error("Status tidak sah.");
+  if (status !== "Hadir" && status !== "Tidak Hadir") {
+    throw new Error("Status tidak sah.");
+  }
 
+  // Semak nama wujud dalam masterlist
+  const master = ss.getSheetByName(MASTER_SHEET);
+  if (!master) throw new Error("Sheet Masterlist tidak dijumpai.");
+
+  const masterRows = master.getLastRow() >= 2
+    ? master.getRange(2, 1, master.getLastRow() - 1, 2).getValues()
+    : [];
+
+  const matched = masterRows.find(r =>
+    String(r[0] || "").trim().toLowerCase() === name.toLowerCase()
+  );
+
+  if (!matched) throw new Error("Nama tidak dijumpai dalam masterlist.");
+
+  const officialBahagian = String(matched[1] || "").trim();
+
+  // Update rekod lama jika nama yang sama dah RSVP
   const lastRow = sh.getLastRow();
   let targetRow = 0;
 
   if (lastRow >= 2) {
     const values = sh.getRange(2, 1, lastRow - 1, 4).getValues();
     for (let i = 0; i < values.length; i++) {
-      if (String(values[i][1]).trim().toLowerCase() === name.toLowerCase()) {
+      if (String(values[i][1] || "").trim().toLowerCase() === name.toLowerCase()) {
         targetRow = i + 2;
         break;
       }
     }
   }
 
-  const rowValues = [[new Date(), name, bahagian, status]];
+  const row = [new Date(), name, officialBahagian || bahagian, status];
 
   if (targetRow) {
-    sh.getRange(targetRow, 1, 1, 4).setValues(rowValues);
+    sh.getRange(targetRow, 1, 1, 4).setValues([row]);
   } else {
-    sh.appendRow(rowValues[0]);
+    sh.appendRow(row);
   }
 
   SpreadsheetApp.flush();
-  return { ok: true, name, bahagian, status };
+
+  return {
+    ok: true,
+    name: name,
+    bahagian: officialBahagian || bahagian,
+    status: status
+  };
 }
 
 function getDashboardData() {
@@ -118,13 +162,15 @@ function getDashboardData() {
     ? rsvp.getRange(2, 1, rsvp.getLastRow() - 1, 4).getValues()
     : [];
 
-  const responsesByName = new Map();
+  const responses = new Map();
+
   rsvpRows.forEach(r => {
     const name = String(r[1] || "").trim();
     if (!name) return;
-    responsesByName.set(name.toLowerCase(), {
+
+    responses.set(name.toLowerCase(), {
       timestamp: r[0] instanceof Date ? r[0].toISOString() : String(r[0] || ""),
-      name,
+      name: name,
       bahagian: String(r[2] || "").trim(),
       status: String(r[3] || "").trim()
     });
@@ -135,22 +181,24 @@ function getDashboardData() {
     .map(r => {
       const name = String(r[0] || "").trim();
       const bahagian = String(r[1] || "").trim();
-      const response = responsesByName.get(name.toLowerCase());
+      const response = responses.get(name.toLowerCase());
 
       return response || {
         timestamp: "",
-        name,
-        bahagian,
+        name: name,
+        bahagian: bahagian,
         status: "Belum Menjawab"
       };
     });
 
-  const counts = {
-    total: rows.length,
-    hadir: rows.filter(r => r.status === "Hadir").length,
-    tidakHadir: rows.filter(r => r.status === "Tidak Hadir").length,
-    belumMenjawab: rows.filter(r => r.status === "Belum Menjawab").length
+  return {
+    ok: true,
+    counts: {
+      total: rows.length,
+      hadir: rows.filter(r => r.status === "Hadir").length,
+      tidakHadir: rows.filter(r => r.status === "Tidak Hadir").length,
+      belumMenjawab: rows.filter(r => r.status === "Belum Menjawab").length
+    },
+    rows: rows
   };
-
-  return { ok: true, counts, rows };
 }

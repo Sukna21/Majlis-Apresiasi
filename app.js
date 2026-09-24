@@ -21,7 +21,7 @@
     toast.textContent=msg;
     toast.className=`toast show ${type==="error"?"error":""}`;
     clearTimeout(showToast.t);
-    showToast.t=setTimeout(()=>toast.className="toast",3200);
+    showToast.t=setTimeout(()=>toast.className="toast",3500);
   }
 
   function setLoading(on){
@@ -44,10 +44,48 @@
   }
   checkClosed();
 
+  function jsonp(params, timeoutMs=12000){
+    return new Promise((resolve,reject)=>{
+      if(!scriptReady()) return reject(new Error("Google Apps Script belum disambungkan."));
+
+      const cb="jsonp_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+      const script=document.createElement("script");
+      const timer=setTimeout(()=>{
+        cleanup();
+        reject(new Error("Tiada respons daripada Google Sheet."));
+      },timeoutMs);
+
+      function cleanup(){
+        clearTimeout(timer);
+        delete window[cb];
+        if(script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      window[cb]=(data)=>{
+        cleanup();
+        resolve(data);
+      };
+
+      const url=new URL(cfg.googleScriptUrl);
+      Object.entries({...params,callback:cb,t:Date.now()}).forEach(([k,v])=>{
+        url.searchParams.set(k,String(v??""));
+      });
+
+      script.src=url.toString();
+      script.onerror=()=>{
+        cleanup();
+        reject(new Error("Gagal berhubung dengan Google Apps Script."));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+
   async function loadMasterlist(){
     try{
       const res=await fetch(`masterlist_pegawai_jpbd_selangor.csv?v=${Date.now()}`,{cache:"no-store"});
       if(!res.ok) throw new Error("Masterlist gagal dimuatkan.");
+
       const text=(await res.text()).replace(/^\uFEFF/,"");
       const lines=text.split(/\r?\n/).filter(Boolean);
 
@@ -100,6 +138,7 @@
   function performSearch(){
     nameEl.classList.remove("name-confirmed");
     const q=nameEl.value.trim().toLowerCase();
+
     if(q.length<2){
       suggestions.classList.add("hidden");
       suggestions.innerHTML="";
@@ -144,19 +183,22 @@
     if(name.length<2) return showToast("Sila masukkan nama penuh.","error");
     if(!bahagian) return showToast("Sila pilih bahagian.","error");
     if(!status) return showToast("Sila pilih Hadir atau Tidak Hadir.","error");
-    if(!scriptReady()) return showToast("Google Apps Script belum disambungkan. Sila lengkapkan setup urusetia.","error");
+    if(!scriptReady()) return showToast("Google Apps Script belum disambungkan.","error");
+
+    // Pastikan nama benar-benar dari masterlist
+    const exact=localInvitees.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(!exact) return showToast("Sila pilih nama daripada senarai cadangan.","error");
 
     setLoading(true);
     try{
-      const res=await fetch(cfg.googleScriptUrl,{
-        method:"POST",
-        redirect:"follow",
-        headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({action:"submit",name,bahagian,status})
+      const data=await jsonp({
+        action:"submit",
+        name:exact.name,
+        bahagian:exact.bahagian,
+        status:status
       });
 
-      const data=await res.json();
-      if(!data.ok) throw new Error(data.error||"Gagal menyimpan RSVP.");
+      if(!data || !data.ok) throw new Error(data?.error||"Gagal menyimpan RSVP.");
 
       form.classList.add("hidden");
       successPanel.classList.remove("hidden");

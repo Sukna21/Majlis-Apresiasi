@@ -16,7 +16,7 @@
     toast.textContent=msg;
     toast.className=`toast show ${type==="error"?"error":""}`;
     clearTimeout(showToast.t);
-    showToast.t=setTimeout(()=>toast.className="toast",3000);
+    showToast.t=setTimeout(()=>toast.className="toast",3500);
   }
 
   function esc(v=""){
@@ -39,19 +39,50 @@
     return cfg.googleScriptUrl && !cfg.googleScriptUrl.includes("PASTE_GOOGLE");
   }
 
-  async function load(){
-    if(!scriptReady()){
-      tableBody.innerHTML=`<tr><td colspan="4" class="empty-row">Google Apps Script belum disambungkan.</td></tr>`;
-      showToast("Masukkan Web App URL dalam config.js dahulu.","error");
-      return;
-    }
+  function jsonp(params, timeoutMs=15000){
+    return new Promise((resolve,reject)=>{
+      if(!scriptReady()) return reject(new Error("Google Apps Script belum disambungkan."));
 
+      const cb="jsonp_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+      const script=document.createElement("script");
+      const timer=setTimeout(()=>{
+        cleanup();
+        reject(new Error("Tiada respons daripada Google Sheet."));
+      },timeoutMs);
+
+      function cleanup(){
+        clearTimeout(timer);
+        delete window[cb];
+        if(script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      window[cb]=(data)=>{
+        cleanup();
+        resolve(data);
+      };
+
+      const url=new URL(cfg.googleScriptUrl);
+      Object.entries({...params,callback:cb,t:Date.now()}).forEach(([k,v])=>{
+        url.searchParams.set(k,String(v??""));
+      });
+
+      script.src=url.toString();
+      script.onerror=()=>{
+        cleanup();
+        reject(new Error("Gagal berhubung dengan Google Apps Script."));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+
+  async function load(){
     document.getElementById("refreshBtn").disabled=true;
+    tableBody.innerHTML=`<tr><td colspan="4" class="empty-row">Memuatkan data...</td></tr>`;
+
     try{
-      const url=`${cfg.googleScriptUrl}${cfg.googleScriptUrl.includes("?")?"&":"?"}action=dashboard&t=${Date.now()}`;
-      const res=await fetch(url,{cache:"no-store"});
-      const data=await res.json();
-      if(!data.ok) throw new Error(data.error||"Gagal mendapatkan data.");
+      const data=await jsonp({action:"dashboard"});
+      if(!data || !data.ok) throw new Error(data?.error||"Gagal mendapatkan data.");
 
       rows=Array.isArray(data.rows)?data.rows:[];
       document.getElementById("statTotal").textContent=data.counts?.total ?? 0;
@@ -61,7 +92,7 @@
       render();
     }catch(err){
       tableBody.innerHTML=`<tr><td colspan="4" class="empty-row">${esc(err.message||"Gagal mendapatkan data.")}</td></tr>`;
-      showToast("Gagal mendapatkan data dari Google Sheet.","error");
+      showToast(err.message||"Gagal mendapatkan data dari Google Sheet.","error");
     }finally{
       document.getElementById("refreshBtn").disabled=false;
     }

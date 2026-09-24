@@ -38,3 +38,19 @@ https://sukna21.github.io/Majlis-Apresiasi/
 ## Urusetia
 Username: `admin`
 Password: `12345678`
+
+
+## Hotfix v5.1 — CORS
+
+Versi 5.1 menggunakan JSONP untuk komunikasi GitHub Pages ↔ Google Apps Script.
+Ini mengelakkan isu CORS / redirect `script.googleusercontent.com`.
+
+Selepas menggantikan `Code.gs` di Apps Script:
+1. Deploy > Manage deployments
+2. Edit deployment
+3. Version: New version
+4. Execute as: Me
+5. Who has access: Anyone
+6. Deploy
+
+URL `/exec` boleh kekal sama jika deployment yang sama dikemas kini.
