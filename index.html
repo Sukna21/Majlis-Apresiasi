@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#21002f">
+  <title>RSVP Majlis Apresiasi SUKNA-21</title>
+  <meta name="description" content="Pengesahan kehadiran Majlis Apresiasi SUKNA-21 Selangor 2026.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-glow hero-glow-a"></div>
+      <div class="hero-glow hero-glow-b"></div>
+      <div class="hero-inner">
+        <div class="eyebrow">SELANGOR 2026</div>
+        <h1>Majlis <span>Apresiasi</span></h1>
+        <p class="hero-title">Kejohanan Sukan Nasional Perancangan Bandar dan Desa Ke-21 (SUKNA-21)</p>
+        <div class="event-pills">
+          <span>📅 28 September 2026</span>
+          <span>🗓️ Isnin</span>
+          <span>🕦 11.30 pagi – 2.30 petang</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-wrap">
+      <section class="event-card">
+        <div class="event-row">
+          <div class="event-icon">📍</div>
+          <div>
+            <span class="event-label">Tempat</span>
+            <strong>Royal Songket, Hotel Mardiyyah, Shah Alam</strong>
+          </div>
+        </div>
+        <div class="event-row">
+          <div class="event-icon">👕</div>
+          <div>
+            <span class="event-label">Pakaian</span>
+            <strong>Warna Hitam dan/atau Ungu</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="rsvp-card">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">PENGESAHAN KEHADIRAN</span>
+            <h2>Boleh hadir pada hari Isnin?</h2>
+          </div>
+          <div class="deadline-badge" id="deadlineBadge">RSVP sebelum 27/9/2026</div>
+        </div>
+
+        <div id="closedNotice" class="notice notice-warn hidden">
+          RSVP telah ditutup. Sila hubungi urusetia untuk sebarang perubahan.
+        </div>
+
+        <form id="rsvpForm" novalidate>
+          <input type="hidden" id="inviteeId">
+
+          <label class="field">
+            <span>Nama penuh <b>*</b></span>
+            <div class="autocomplete-wrap">
+              <input id="name" name="name" type="text" autocomplete="name" placeholder="Taip nama penuh" maxlength="120" required>
+              <div class="suggestions hidden" id="suggestions"></div>
+            </div>
+            <small>Jika nama anda ada dalam masterlist, pilih nama yang dicadangkan.</small>
+          </label>
+
+          <div class="two-col">
+            <label class="field">
+              <span>Bahagian / Unit</span>
+              <input id="unit" name="unit" type="text" placeholder="Contoh: Bahagian Rancangan Pembangunan" maxlength="120">
+            </label>
+            <label class="field">
+              <span>No. telefon <em>(pilihan)</em></span>
+              <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="Contoh: 0123456789" maxlength="30">
+            </label>
+          </div>
+
+          <fieldset class="status-field">
+            <legend>Status kehadiran <b>*</b></legend>
+            <div class="status-grid">
+              <button type="button" class="status-btn hadir" data-status="hadir">
+                <span class="status-emoji">✓</span>
+                <span><strong>Ya, saya hadir</strong><small>Sahkan kehadiran</small></span>
+              </button>
+              <button type="button" class="status-btn tidak" data-status="tidak_hadir">
+                <span class="status-emoji">×</span>
+                <span><strong>Tidak dapat hadir</strong><small>Maklumkan urusetia</small></span>
+              </button>
+              <button type="button" class="status-btn mungkin" data-status="belum_pasti">
+                <span class="status-emoji">?</span>
+                <span><strong>Belum pasti</strong><small>Akan kemas kini kemudian</small></span>
+              </button>
+            </div>
+            <input type="hidden" id="status" required>
+          </fieldset>
+
+          <label class="field">
+            <span>Catatan <em>(pilihan)</em></span>
+            <textarea id="note" name="note" rows="3" maxlength="300" placeholder="Contoh: Hadir lewat / urusan rasmi / lain-lain"></textarea>
+          </label>
+
+          <button id="submitBtn" class="primary-btn" type="submit">
+            <span class="btn-text">Hantar Maklum Balas</span>
+            <span class="spinner hidden" aria-hidden="true"></span>
+          </button>
+          <p class="privacy-note">Maklumat ini digunakan untuk urusan penyelarasan kehadiran majlis.</p>
+        </form>
+
+        <div id="successPanel" class="success-panel hidden">
+          <div class="success-icon">✓</div>
+          <h3>Terima kasih!</h3>
+          <p>Maklum balas kehadiran anda telah direkodkan.</p>
+          <button class="secondary-btn" id="editBtn" type="button">Kemas kini jawapan</button>
+        </div>
+      </section>
+
+      <section class="quick-card">
+        <div>
+          <span class="section-kicker">URUS SETIA</span>
+          <h3>Pantau status kehadiran secara langsung</h3>
+          <p>Dashboard memaparkan jumlah hadir, tidak hadir, belum pasti dan senarai yang belum memberi maklum balas.</p>
+        </div>
+        <a class="admin-link" href="admin.html">Buka Dashboard Admin →</a>
+      </section>
+    </main>
+
+    <footer>
+      <strong>SUKNA-21 Selangor 2026</strong>
+      <span>Majlis Apresiasi • 28 September 2026</span>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
