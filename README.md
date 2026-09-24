@@ -64,3 +64,11 @@ https://sukna21.github.io/Majlis-Apresiasi/qr.html
 - Tidak lagi bergantung kepada GET terus ke database view.
 - Memperbaiki ralat `Gagal mendapatkan data`.
 - Jumlah jemputan kini terus membaca 99 nama masterlist dari Supabase.
+
+## Hotfix v4.3
+
+- Dashboard kini memuatkan masterlist 99 pegawai secara tempatan dahulu.
+- Jika Supabase mengalami PGRST002/PGRST003/503, dashboard tidak lagi kosong atau menunjukkan 0 jemputan.
+- Auto-retry Supabase sehingga 6 kali dan cuba lagi setiap 15 saat jika masih sibuk.
+- RSVP submission turut mempunyai auto-retry.
+- Cache-buster ditambah pada JS/CSS.

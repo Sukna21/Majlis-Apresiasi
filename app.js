@@ -222,14 +222,37 @@
         p_note:""
       };
 
-      const res=await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/submit_sukna21_rsvp`,{
-        method:"POST",
-        headers,
-        body:JSON.stringify(payload)
-      });
-      const data=await res.json();
+      let res=null;
+      let data=null;
+      let lastError=null;
 
-      if(!res.ok) throw new Error(data?.message||data?.error||"Gagal merekodkan RSVP.");
+      for(let attempt=1; attempt<=5; attempt++){
+        try{
+          res=await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/submit_sukna21_rsvp`,{
+            method:"POST",
+            headers,
+            body:JSON.stringify(payload),
+            cache:"no-store"
+          });
+
+          data=await res.json();
+
+          if(res.ok) break;
+
+          const retryable=res.status===503 || data?.code==="PGRST002" || data?.code==="PGRST003";
+          if(!retryable) throw new Error(data?.message||data?.error||"Gagal merekodkan RSVP.");
+
+          lastError=new Error("Sambungan pangkalan data sedang sibuk.");
+        }catch(err){
+          lastError=err;
+        }
+
+        if(attempt<5){
+          await new Promise(r=>setTimeout(r,1000*attempt));
+        }
+      }
+
+      if(!res?.ok) throw lastError || new Error("Gagal merekodkan RSVP.");
 
       form.classList.add("hidden");
       successPanel.classList.remove("hidden");
