@@ -67,8 +67,8 @@ button{cursor:pointer}
 .field{display:block;margin-bottom:18px}
 .field>span,.status-field legend{display:block;font-weight:800;font-size:.9rem;margin-bottom:8px}
 .field b,.status-field b{color:#a3203f}
-.field input,.search-box{width:100%;border:1px solid #dcd2df;background:white;border-radius:14px;padding:13px 14px;outline:none;color:var(--ink)}
-.field input:focus,.search-box:focus{border-color:var(--purple-500);box-shadow:0 0 0 4px rgba(138,59,159,.11)}
+.field input,.field select,.search-box{width:100%;border:1px solid #dcd2df;background:white;border-radius:14px;padding:13px 14px;outline:none;color:var(--ink)}
+.field input:focus,.field select:focus,.search-box:focus{border-color:var(--purple-500);box-shadow:0 0 0 4px rgba(138,59,159,.11)}
 .field small{display:block;color:var(--muted);font-size:.76rem;margin-top:6px}
 .autocomplete-wrap{position:relative}
 .suggestions{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 6px);max-height:300px;overflow:auto;background:white;border:1px solid #dfd6e3;border-radius:14px;box-shadow:0 16px 40px rgba(36,0,48,.16)}
@@ -165,4 +165,44 @@ th{background:#fcfafc;color:#76697b;font-size:.72rem;text-transform:uppercase;le
   .event-meta{grid-template-columns:1fr}.event-meta span{border-right:0!important;border-bottom:1px solid rgba(235,207,130,.2)}
   .event-meta span:last-child{border-bottom:0}.stats-grid.four{grid-template-columns:1fr 1fr}
   .table-footer{flex-direction:column}
+}
+
+.field select{
+  appearance:none;
+  background:
+    linear-gradient(45deg,transparent 50%,#6a5870 50%) calc(100% - 18px) calc(50% - 3px)/6px 6px no-repeat,
+    linear-gradient(135deg,#6a5870 50%,transparent 50%) calc(100% - 12px) calc(50% - 3px)/6px 6px no-repeat,
+    #fff;
+  padding-right:40px;
+}
+.name-confirmed{
+  border-color:#2c8a61!important;
+  box-shadow:0 0 0 4px rgba(44,138,97,.10)!important;
+}
+.suggestion.no-result{
+  cursor:default;
+  background:#faf7fb;
+}
+.suggestion.no-result:hover{background:#faf7fb}
+.event-title{
+  margin:0 auto;
+  max-width:1000px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  color:#fff7e6;
+}
+.event-title span:nth-child(1){
+  font:800 clamp(2.8rem,8vw,5.4rem)/1 "Playfair Display",serif;
+  color:var(--gold-light);
+}
+.event-title span:nth-child(2){
+  font:700 clamp(1.1rem,2.8vw,1.8rem)/1.35 "Playfair Display",serif;
+  color:#fffaf0;
+}
+.event-title span:nth-child(3){
+  margin-top:4px;
+  font:800 clamp(1.35rem,3.5vw,2.2rem)/1.2 "Playfair Display",serif;
+  color:var(--gold-light);
+  letter-spacing:.04em;
 }

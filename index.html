@@ -20,10 +20,11 @@
       <div class="gold-arc arc-right"></div>
 
       <div class="poster-inner">
-        <div class="kicker">SELANGOR 2026</div>
-        <div class="script-title">Majlis Apresiasi</div>
-        <div class="gold-divider"><span>✦</span></div>
-        <h1>Majlis Apresiasi Kejohanan Sukan Nasional Perancangan Bandar dan Desa Ke-21 (SUKNA21) Selangor 2026</h1>
+        <h1 class="event-title">
+          <span>Majlis Apresiasi</span>
+          <span>Kejohanan Sukan Nasional Perancangan Bandar dan Desa Ke-21 (SUKNA21)</span>
+          <span>Selangor 2026</span>
+        </h1>
 
         <div class="event-meta">
           <span><b>28/9/2026</b><small>ISNIN</small></span>
@@ -58,12 +59,18 @@
               <input id="name" name="name" type="text" autocomplete="off" placeholder="Taip nama anda..." maxlength="120" required>
               <div class="suggestions hidden" id="suggestions"></div>
             </div>
-            <small>Pilih nama daripada senarai cadangan jika dipaparkan.</small>
+            <small>Taip sekurang-kurangnya 2 huruf. Senarai nama pegawai akan dipaparkan secara automatik.</small>
           </label>
 
           <label class="field">
-            <span>Bahagian / Unit</span>
-            <input id="unit" name="unit" type="text" placeholder="Bahagian / Unit" maxlength="120">
+            <span>Bahagian <b>*</b></span>
+            <select id="unit" name="unit" required>
+              <option value="">-- Pilih Bahagian --</option>
+              <option value="Pentadbiran dan Kewangan">Pentadbiran dan Kewangan</option>
+              <option value="Perancangan Korporat">Perancangan Korporat</option>
+              <option value="Pengawalan Perancangan">Pengawalan Perancangan</option>
+              <option value="Rancangan Pembangunan">Rancangan Pembangunan</option>
+            </select>
           </label>
 
           <fieldset class="status-field">

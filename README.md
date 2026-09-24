@@ -39,3 +39,14 @@ https://sukna21.github.io/Majlis-Apresiasi/admin.html
 
 QR:
 https://sukna21.github.io/Majlis-Apresiasi/qr.html
+
+
+## Perubahan v4
+
+- Tajuk portal disusun kepada 3 baris:
+  1. Majlis Apresiasi
+  2. Kejohanan Sukan Nasional Perancangan Bandar dan Desa Ke-21 (SUKNA21)
+  3. Selangor 2026
+- Bahagian kini menggunakan dropdown sahaja.
+- Senarai bahagian: Pentadbiran dan Kewangan, Perancangan Korporat, Pengawalan Perancangan, Rancangan Pembangunan.
+- Suggestion nama menggunakan masterlist 99 pegawai dalam Supabase dan akan mengisi Bahagian secara automatik apabila nama dipilih.

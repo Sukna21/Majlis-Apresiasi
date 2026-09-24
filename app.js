@@ -11,6 +11,7 @@
   const closedNotice = document.getElementById("closedNotice");
   const toast = document.getElementById("toast");
   let timer = null;
+  let lastResults = [];
 
   const headers = {
     "apikey": cfg.supabaseKey,
@@ -21,17 +22,20 @@
   function esc(v=""){
     return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   }
+
   function showToast(msg,type="ok"){
     toast.textContent=msg;
     toast.className=`toast show ${type==="error"?"error":""}`;
     clearTimeout(showToast.t);
     showToast.t=setTimeout(()=>toast.className="toast",3000);
   }
+
   function setLoading(on){
     submitBtn.disabled=on;
     submitBtn.querySelector(".btn-text").textContent=on?"Menghantar...":"Hantar Maklum Balas";
     submitBtn.querySelector(".spinner").classList.toggle("hidden",!on);
   }
+
   function checkClosed(){
     const closed=Date.now()>new Date(cfg.rsvpClose).getTime();
     if(closed){
@@ -52,47 +56,95 @@
 
   async function searchInvitees(q){
     const res=await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/search_sukna21_invitees`,{
-      method:"POST",headers,body:JSON.stringify({p_q:q})
+      method:"POST",
+      headers,
+      body:JSON.stringify({p_q:q})
     });
-    if(!res.ok)return [];
+    if(!res.ok){
+      throw new Error("Senarai nama tidak dapat dimuatkan.");
+    }
     return await res.json();
   }
 
   function renderSuggestions(rows){
-    if(!rows?.length){
-      suggestions.classList.add("hidden");
-      suggestions.innerHTML="";
+    const selectedBahagian=unitEl.value;
+    const filtered=selectedBahagian
+      ? rows.filter(r=>r.unit===selectedBahagian)
+      : rows;
+
+    lastResults=filtered;
+
+    if(!filtered.length){
+      suggestions.innerHTML=`
+        <div class="suggestion no-result">
+          <strong>Tiada nama dijumpai</strong>
+          <small>Semak ejaan atau pilihan bahagian.</small>
+        </div>`;
+      suggestions.classList.remove("hidden");
       return;
     }
-    suggestions.innerHTML=rows.map(r=>`
-      <div class="suggestion" data-id="${r.id}" data-name="${esc(r.name)}" data-unit="${esc(r.unit||"")}">
+
+    suggestions.innerHTML=filtered.map(r=>`
+      <div class="suggestion"
+           data-id="${r.id}"
+           data-name="${esc(r.name)}"
+           data-unit="${esc(r.unit||"")}">
         <strong>${esc(r.name)}</strong>
         <small>${esc(r.unit||"—")}</small>
       </div>`).join("");
+
     suggestions.classList.remove("hidden");
-    suggestions.querySelectorAll(".suggestion").forEach(item=>{
+
+    suggestions.querySelectorAll(".suggestion:not(.no-result)").forEach(item=>{
       item.addEventListener("click",()=>{
         inviteeIdEl.value=item.dataset.id;
         nameEl.value=item.dataset.name;
         unitEl.value=item.dataset.unit;
         suggestions.classList.add("hidden");
+        nameEl.classList.add("name-confirmed");
       });
     });
   }
 
-  nameEl.addEventListener("input",()=>{
+  async function performSearch(){
     inviteeIdEl.value="";
-    clearTimeout(timer);
+    nameEl.classList.remove("name-confirmed");
+
     const q=nameEl.value.trim();
-    if(q.length<2)return renderSuggestions([]);
-    timer=setTimeout(async()=>{
-      try{renderSuggestions(await searchInvitees(q));}
-      catch{renderSuggestions([]);}
-    },230);
+    if(q.length<2){
+      suggestions.classList.add("hidden");
+      suggestions.innerHTML="";
+      return;
+    }
+
+    try{
+      const rows=await searchInvitees(q);
+      renderSuggestions(rows);
+    }catch(err){
+      suggestions.innerHTML=`
+        <div class="suggestion no-result">
+          <strong>Senarai nama tidak dapat dimuatkan</strong>
+          <small>Cuba refresh halaman.</small>
+        </div>`;
+      suggestions.classList.remove("hidden");
+    }
+  }
+
+  nameEl.addEventListener("input",()=>{
+    clearTimeout(timer);
+    timer=setTimeout(performSearch,180);
+  });
+
+  nameEl.addEventListener("focus",()=>{
+    if(nameEl.value.trim().length>=2) performSearch();
+  });
+
+  unitEl.addEventListener("change",()=>{
+    if(nameEl.value.trim().length>=2) performSearch();
   });
 
   document.addEventListener("click",e=>{
-    if(!e.target.closest(".autocomplete-wrap"))suggestions.classList.add("hidden");
+    if(!e.target.closest(".autocomplete-wrap")) suggestions.classList.add("hidden");
   });
 
   form.addEventListener("submit",async e=>{
@@ -100,25 +152,33 @@
     if(checkClosed())return;
 
     const name=nameEl.value.trim();
+    const unit=unitEl.value;
     const status=statusEl.value;
-    if(name.length<2)return showToast("Sila masukkan nama penuh.","error");
-    if(!["hadir","tidak_hadir"].includes(status))return showToast("Sila pilih Hadir atau Tidak Hadir.","error");
+
+    if(name.length<2) return showToast("Sila masukkan nama penuh.","error");
+    if(!unit) return showToast("Sila pilih bahagian.","error");
+    if(!["hadir","tidak_hadir"].includes(status)) return showToast("Sila pilih Hadir atau Tidak Hadir.","error");
 
     setLoading(true);
     try{
       const payload={
         p_invitee_id:inviteeIdEl.value||null,
         p_name:name,
-        p_unit:unitEl.value.trim(),
+        p_unit:unit,
         p_phone:"",
         p_status:status,
         p_note:""
       };
+
       const res=await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/submit_sukna21_rsvp`,{
-        method:"POST",headers,body:JSON.stringify(payload)
+        method:"POST",
+        headers,
+        body:JSON.stringify(payload)
       });
+
       const data=await res.json();
-      if(!res.ok)throw new Error(data?.message||data?.error||"Gagal merekodkan RSVP.");
+      if(!res.ok) throw new Error(data?.message||data?.error||"Gagal merekodkan RSVP.");
+
       form.classList.add("hidden");
       successPanel.classList.remove("hidden");
       showToast("Maklum balas berjaya direkodkan.");
