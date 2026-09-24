@@ -3,38 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#21002f">
-  <title>Dashboard RSVP • Majlis Apresiasi SUKNA-21</title>
+  <meta name="theme-color" content="#18001f">
+  <title>Dashboard Urusetia • Majlis Apresiasi SUKNA-21</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    if (sessionStorage.getItem("sukna21_admin_login") !== "1") {
+      location.replace("urusetia.html");
+    }
+  </script>
 </head>
-<body class="admin-body">
-  <header class="admin-topbar">
+<body class="admin-page">
+  <header class="admin-header">
     <div>
-      <span class="section-kicker">SUKNA-21 SELANGOR 2026</span>
+      <span class="mini-kicker">URUSETIA • SUKNA-21 SELANGOR 2026</span>
       <h1>Dashboard Kehadiran</h1>
       <p>Majlis Apresiasi • Isnin, 28 September 2026</p>
     </div>
     <div class="admin-actions">
-      <a class="secondary-btn" href="index.html">← Portal RSVP</a>
-      <button class="secondary-btn" id="refreshBtn">↻ Refresh</button>
-      <button class="primary-btn mini" id="exportBtn">Export CSV</button>
+      <button class="ghost-dark" id="refreshBtn">↻ Refresh</button>
+      <button class="gold-small" id="exportBtn">Export CSV</button>
+      <button class="danger-small" id="logoutBtn">Log Keluar</button>
     </div>
   </header>
 
   <main class="admin-main">
-    <div class="notice notice-info" id="masterlistNotice">
-      <strong>Masterlist:</strong> <span id="masterlistText">Semakan sedang dibuat…</span>
-    </div>
-
-    <section class="stats-grid">
-      <article class="stat-card stat-total"><span>Jumlah Jemputan</span><strong id="statTotal">0</strong></article>
-      <article class="stat-card stat-hadir"><span>Hadir</span><strong id="statHadir">0</strong></article>
-      <article class="stat-card stat-tidak"><span>Tidak Hadir</span><strong id="statTidak">0</strong></article>
-      <article class="stat-card stat-mungkin"><span>Belum Pasti</span><strong id="statMungkin">0</strong></article>
-      <article class="stat-card stat-pending"><span>Belum Menjawab</span><strong id="statPending">0</strong></article>
+    <section class="stats-grid four">
+      <article class="stat-card">
+        <span>Jumlah Jemputan</span>
+        <strong id="statTotal">0</strong>
+      </article>
+      <article class="stat-card hadir-card">
+        <span>Hadir</span>
+        <strong id="statHadir">0</strong>
+      </article>
+      <article class="stat-card tidak-card">
+        <span>Tidak Hadir</span>
+        <strong id="statTidak">0</strong>
+      </article>
+      <article class="stat-card pending-card">
+        <span>Belum Menjawab</span>
+        <strong id="statPending">0</strong>
+      </article>
     </section>
 
     <section class="dashboard-card">
@@ -43,10 +55,9 @@
           <button class="filter-tab active" data-filter="all">Semua</button>
           <button class="filter-tab" data-filter="hadir">Hadir</button>
           <button class="filter-tab" data-filter="tidak_hadir">Tidak Hadir</button>
-          <button class="filter-tab" data-filter="belum_pasti">Belum Pasti</button>
           <button class="filter-tab" data-filter="belum_jawab">Belum Menjawab</button>
         </div>
-        <input class="search-box" id="searchBox" placeholder="Cari nama / unit…">
+        <input class="search-box" id="searchBox" placeholder="Cari nama / bahagian...">
       </div>
 
       <div class="table-wrap">
@@ -60,23 +71,15 @@
             </tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="4" class="empty-row">Memuatkan data…</td></tr>
+            <tr><td colspan="4" class="empty-row">Memuatkan data...</td></tr>
           </tbody>
         </table>
       </div>
+
       <div class="table-footer">
         <span id="rowCount">0 rekod</span>
-        <span>Data dikemas kini secara langsung daripada Supabase</span>
+        <span>Dashboard Urusetia Majlis Apresiasi SUKNA-21</span>
       </div>
-    </section>
-
-    <section class="quick-card">
-      <div>
-        <span class="section-kicker">MASTERLIST JEMPUTAN</span>
-        <h3>Nak aktifkan “Belum Menjawab” dengan tepat?</h3>
-        <p>Isi fail <b>masterlist_template.csv</b> dengan Nama dan Bahagian/Unit. Selepas masterlist dimasukkan ke pangkalan data, dashboard akan automatik mengenal pasti siapa yang masih belum menjawab.</p>
-      </div>
-      <a class="admin-link" href="masterlist_template.csv" download>Muat turun template CSV →</a>
     </section>
   </main>
 

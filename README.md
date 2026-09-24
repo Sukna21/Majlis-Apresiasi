@@ -1,42 +1,41 @@
 # Portal RSVP Majlis Apresiasi SUKNA-21 Selangor 2026
 
-Portal ini disediakan untuk semakan kehadiran Majlis Apresiasi pada **Isnin, 28 September 2026**, 11.30 pagi – 2.30 petang di Royal Songket, Hotel Mardiyyah, Shah Alam.
+Versi ini telah disesuaikan dengan tema poster ungu + hitam + emas.
 
 ## Halaman
 
-- `index.html` — Borang RSVP
-- `admin.html` — Dashboard kehadiran
-- `masterlist_template.csv` — Template nama jemputan
-- `styles.css` — Rekaan UI
-- `app.js` / `admin.js` — Fungsi portal
-- `config.js` — Sambungan Supabase
+- `index.html` — Portal RSVP awam
+- `urusetia.html` — Halaman log masuk urusetia
+- `admin.html` — Dashboard urusetia
+- `qr.html` — Paparan QR RSVP
 
-## Backend
+## Status RSVP
 
-Supabase project telah disediakan dengan:
-- `sukna21_invitees`
-- `sukna21_rsvps`
-- RPC `submit_sukna21_rsvp`
-- RPC `search_sukna21_invitees`
-- paparan selamat `sukna21_rsvp_public`
-- paparan selamat `sukna21_invitees_public`
+Hanya dua pilihan:
+- Hadir
+- Tidak Hadir
 
-RSVP ditutup secara automatik pada **27 September 2026, 11:59 malam (MYT)**.
+Tiada ruangan nombor telefon dan tiada ruangan catatan.
 
-## Masterlist
+## Urusetia
 
-Isi fail `masterlist_template.csv` seperti berikut:
+Username: `admin`  
+Password: `12345678`
 
-```csv
-Nama,Bahagian/Unit,No Telefon
-Nama Contoh,Bahagian Rancangan Pembangunan,0123456789
-```
+Dashboard tidak dipautkan pada halaman awam.
 
-Selepas masterlist dimasukkan ke Supabase, dashboard akan automatik mengira **Belum Menjawab**.
+> Nota: GitHub Pages ialah hosting statik. Login ini berfungsi sebagai sekatan UI ringan (client-side), bukan sistem keselamatan server-grade.
 
-## Cadangan URL GitHub Pages
+## URL GitHub Pages
 
-https://faeiruzrusman.github.io/SUKNA-Lucky-Draw/apresiasi-rsvp/
+Portal:
+https://sukna21.github.io/Majlis-Apresiasi/
+
+Urusetia:
+https://sukna21.github.io/Majlis-Apresiasi/urusetia.html
 
 Dashboard:
-https://faeiruzrusman.github.io/SUKNA-Lucky-Draw/apresiasi-rsvp/admin.html
+https://sukna21.github.io/Majlis-Apresiasi/admin.html
+
+QR:
+https://sukna21.github.io/Majlis-Apresiasi/qr.html
