@@ -1,74 +1,40 @@
-# Portal RSVP Majlis Apresiasi SUKNA-21 Selangor 2026
+# Portal RSVP Majlis Apresiasi SUKNA-21 — Google Sheet Version
 
-Versi ini telah disesuaikan dengan tema poster ungu + hitam + emas.
+Portal ini tidak lagi menggunakan Supabase.
 
-## Halaman
+## Google Sheet
 
-- `index.html` — Portal RSVP awam
-- `urusetia.html` — Halaman log masuk urusetia
-- `admin.html` — Dashboard urusetia
-- `qr.html` — Paparan QR RSVP
+https://docs.google.com/spreadsheets/d/1Z8uafVcuju1rx2P7WfE2xSRbHs-k-NNOxgIh8qIW0Uw/edit
 
-## Status RSVP
+Sheet disediakan dengan tiga tab:
+- `Masterlist` — 99 nama pegawai + Bahagian
+- `RSVP` — jawapan Hadir / Tidak Hadir
+- `Dashboard` — ringkasan dalam Google Sheet
 
-Hanya dua pilihan:
-- Hadir
-- Tidak Hadir
+## Sambungkan portal ke Google Sheet
 
-Tiada ruangan nombor telefon dan tiada ruangan catatan.
+1. Buka Google Sheet di atas.
+2. Pilih **Extensions → Apps Script**.
+3. Padam kod contoh dan paste seluruh kandungan fail `Code.gs`.
+4. Klik **Deploy → New deployment**.
+5. Pilih **Web app**.
+6. `Execute as`: **Me**
+7. `Who has access`: **Anyone**
+8. Klik **Deploy**, authorize jika diminta.
+9. Copy URL yang berakhir dengan `/exec`.
+10. Buka `config.js` dalam repo dan tukar:
 
-## Urusetia
+```js
+googleScriptUrl: "PASTE_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE"
+```
 
-Username: `admin`  
-Password: `12345678`
+kepada URL `/exec` tadi.
 
-Dashboard tidak dipautkan pada halaman awam.
+Selepas itu portal RSVP dan dashboard urusetia akan menggunakan Google Sheet ini sahaja.
 
-> Nota: GitHub Pages ialah hosting statik. Login ini berfungsi sebagai sekatan UI ringan (client-side), bukan sistem keselamatan server-grade.
-
-## URL GitHub Pages
-
-Portal:
+## URL portal
 https://sukna21.github.io/Majlis-Apresiasi/
 
-Urusetia:
-https://sukna21.github.io/Majlis-Apresiasi/urusetia.html
-
-Dashboard:
-https://sukna21.github.io/Majlis-Apresiasi/admin.html
-
-QR:
-https://sukna21.github.io/Majlis-Apresiasi/qr.html
-
-
-## Perubahan v4
-
-- Tajuk portal disusun kepada 3 baris:
-  1. Majlis Apresiasi
-  2. Kejohanan Sukan Nasional Perancangan Bandar dan Desa Ke-21 (SUKNA21)
-  3. Selangor 2026
-- Bahagian kini menggunakan dropdown sahaja.
-- Senarai bahagian: Pentadbiran dan Kewangan, Perancangan Korporat, Pengawalan Perancangan, Rancangan Pembangunan.
-- Suggestion nama menggunakan masterlist 99 pegawai dalam Supabase dan akan mengisi Bahagian secara automatik apabila nama dipilih.
-
-## Hotfix v4.1
-
-- Memperbaiki masalah "Senarai nama tidak dapat dimuatkan".
-- `config.js` kini menggunakan legacy anon JWT yang serasi dengan direct Supabase REST/RPC.
-- Suggestion nama kini baca terus `masterlist_pegawai_jpbd_selangor.csv` dari repo sebagai sumber utama.
-- Supabase digunakan sebagai fallback dan untuk menyimpan RSVP.
-
-## Hotfix v4.2
-
-- Dashboard admin kini menggunakan RPC `get_sukna21_dashboard()`.
-- Tidak lagi bergantung kepada GET terus ke database view.
-- Memperbaiki ralat `Gagal mendapatkan data`.
-- Jumlah jemputan kini terus membaca 99 nama masterlist dari Supabase.
-
-## Hotfix v4.3
-
-- Dashboard kini memuatkan masterlist 99 pegawai secara tempatan dahulu.
-- Jika Supabase mengalami PGRST002/PGRST003/503, dashboard tidak lagi kosong atau menunjukkan 0 jemputan.
-- Auto-retry Supabase sehingga 6 kali dan cuba lagi setiap 15 saat jika masih sibuk.
-- RSVP submission turut mempunyai auto-retry.
-- Cache-buster ditambah pada JS/CSS.
+## Urusetia
+Username: `admin`
+Password: `12345678`
