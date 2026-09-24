@@ -82,6 +82,25 @@
   }
 
   async function loadMasterlist(){
+    // Sumber utama: Google Sheet. Nama baharu akan terus muncul tanpa perlu edit CSV/repo.
+    if(scriptReady()){
+      try{
+        const data=await jsonp({action:"masterlist"});
+        if(data?.ok && Array.isArray(data.rows)){
+          localInvitees=data.rows
+            .map(r=>({
+              name:String(r.name||"").trim(),
+              bahagian:String(r.bahagian||"").trim()
+            }))
+            .filter(x=>x.name);
+          return;
+        }
+      }catch(err){
+        console.warn("Masterlist Google Sheet gagal; guna CSV fallback.",err);
+      }
+    }
+
+    // Fallback jika Apps Script belum tersedia
     try{
       const res=await fetch(`masterlist_pegawai_jpbd_selangor.csv?v=${Date.now()}`,{cache:"no-store"});
       if(!res.ok) throw new Error("Masterlist gagal dimuatkan.");

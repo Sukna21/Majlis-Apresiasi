@@ -54,3 +54,11 @@ Selepas menggantikan `Code.gs` di Apps Script:
 6. Deploy
 
 URL `/exec` boleh kekal sama jika deployment yang sama dikemas kini.
+
+
+## Hotfix v5.3 — Dynamic Masterlist
+
+Suggestion nama kini ditarik terus daripada tab `Masterlist` dalam Google Sheet.
+Selepas ini, bila tambah nama dalam Google Sheet, portal akan terus nampak nama tersebut tanpa perlu edit CSV/repo.
+
+Selepas menggantikan `Code.gs`, update Apps Script deployment kepada **New version**.

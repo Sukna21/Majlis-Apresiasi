@@ -34,6 +34,8 @@ function doGet(e) {
 
     if (action === "dashboard") {
       result = getDashboardData();
+    } else if (action === "masterlist") {
+      result = getMasterlistData();
     } else if (action === "submit") {
       result = saveRSVP({
         name: p.name,
@@ -144,6 +146,27 @@ function saveRSVP(data) {
     name: name,
     bahagian: officialBahagian || bahagian,
     status: status
+  };
+}
+
+function getMasterlistData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const master = ss.getSheetByName(MASTER_SHEET);
+
+  if (!master) throw new Error("Sheet Masterlist tidak dijumpai.");
+
+  const rows = master.getLastRow() >= 2
+    ? master.getRange(2, 1, master.getLastRow() - 1, 2).getValues()
+    : [];
+
+  return {
+    ok: true,
+    rows: rows
+      .filter(r => String(r[0] || "").trim())
+      .map(r => ({
+        name: String(r[0] || "").trim(),
+        bahagian: String(r[1] || "").trim()
+      }))
   };
 }
 
