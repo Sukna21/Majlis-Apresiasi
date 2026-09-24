@@ -57,3 +57,10 @@ https://sukna21.github.io/Majlis-Apresiasi/qr.html
 - `config.js` kini menggunakan legacy anon JWT yang serasi dengan direct Supabase REST/RPC.
 - Suggestion nama kini baca terus `masterlist_pegawai_jpbd_selangor.csv` dari repo sebagai sumber utama.
 - Supabase digunakan sebagai fallback dan untuk menyimpan RSVP.
+
+## Hotfix v4.2
+
+- Dashboard admin kini menggunakan RPC `get_sukna21_dashboard()`.
+- Tidak lagi bergantung kepada GET terus ke database view.
+- Memperbaiki ralat `Gagal mendapatkan data`.
+- Jumlah jemputan kini terus membaca 99 nama masterlist dari Supabase.
